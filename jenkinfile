@@ -1,0 +1,19 @@
+pipeline {
+    agent { label 'app' }
+
+    stages {
+        stage('Deploy') {
+            steps {
+                sh '''
+                mkdir -p ~/app
+                cd ~/app
+                if [ ! -d .git ]; then
+                  git clone git@github.com:engrsaqi14-sketch/jenkin_testing.git .
+                else
+                  git pull origin main
+                fi
+                '''
+            }
+        }
+    }
+}
