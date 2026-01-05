@@ -12,14 +12,10 @@ pipeline {
         stage('Deploy') {
             steps {
                 sh '''
-                cd
-                cd app/
-                touch checking-automation_jenkins
+                mkdir -p /home/ubuntu/app
+                rsync -av --delete ./ /home/ubuntu/app/
                 '''
             }
         }
     }
 }
-
-
-
