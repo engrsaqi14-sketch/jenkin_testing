@@ -12,15 +12,14 @@ pipeline {
         stage('Deploy') {
             steps {
                 sh '''
-                cd ~/saqib-jenkin-check
-                nano file_pro
-                if [ ! -d .git ]; then
-                  git clone https://github.com/<username>/<repo>.git .
-                else
-                  git pull origin main
-                fi
+                pwd
+                ls -la
+                echo "Deploying from Jenkins workspace"
                 '''
             }
         }
     }
 }
+
+
+
