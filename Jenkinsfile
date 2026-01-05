@@ -12,9 +12,9 @@ pipeline {
         stage('Deploy') {
             steps {
                 sh '''
-                pwd
-                ls -la
-                echo "Deploying from Jenkins workspace"
+                cd
+                cd app/
+                touch checking-automation_jenkins
                 '''
             }
         }
