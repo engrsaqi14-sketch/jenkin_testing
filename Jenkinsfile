@@ -13,7 +13,8 @@ pipeline {
             steps {
                 sh '''
                 cd ~/app
-                mkdir ~/saqib-jenkin-check
+                cd ~/saqib-jenkin-check
+                nano file_pro
                 if [ ! -d .git ]; then
                   git clone https://github.com/<username>/<repo>.git .
                 else
