@@ -12,7 +12,6 @@ pipeline {
         stage('Deploy') {
             steps {
                 sh '''
-                cd ~/app
                 cd ~/saqib-jenkin-check
                 nano file_pro
                 if [ ! -d .git ]; then
