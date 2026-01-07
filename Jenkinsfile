@@ -13,7 +13,8 @@ pipeline {
             steps {
                 sh '''
                 mkdir -p /home/ubuntu/app
-                rsync -av --delete ./ /home/ubuntu/app/
+                cd app
+                nano newfile.txt
                 '''
             }
         }
