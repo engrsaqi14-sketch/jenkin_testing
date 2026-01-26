@@ -1,5 +1,5 @@
 pipeline {
-    agent { label 'webserver' }
+    agent { label 'web-node' }
 
     environment {
         APP_NAME = "node-app"
@@ -21,11 +21,26 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Install Docker (if not exists)') {
             steps {
                 sh '''
-                docker build -t $DOCKER_IMAGE .
+                if ! command -v docker >/dev/null 2>&1; then
+                  echo "Docker not found. Installing..."
+                  sudo apt-get update
+                  sudo apt-get install -y docker.io
+                  sudo systemctl start docker
+                  sudo systemctl enable docker
+                  sudo usermod -aG docker jenkins
+                else
+                  echo "Docker already installed"
+                fi
                 '''
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                sh 'docker build -t $DOCKER_IMAGE .'
             }
         }
 
