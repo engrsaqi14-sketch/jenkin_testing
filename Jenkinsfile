@@ -1,76 +1,42 @@
 pipeline {
     agent { label 'webserver' }
 
-    environment {
-        APP_NAME = "node-app"
-        DOCKER_IMAGE = "node-app-image"
-        EC2_USER = "ubuntu"
-        EC2_HOST = "15.185.151.186"
-    }
-
     triggers {
         githubPush()
     }
 
     stages {
 
-        stage('Checkout Code') {
+        stage('Checkout Source Code') {
             steps {
-                git branch: 'main',
-                url: 'https://github.com/USERNAME/REPO_NAME.git'
-            }
-        }
-
-        stage('Install Docker (if not exists)') {
-            steps {
-                sh '''
-                if ! command -v docker >/dev/null 2>&1; then
-                  echo "Docker not found. Installing..."
-                  sudo apt-get update
-                  sudo apt-get install -y docker.io
-                  sudo systemctl start docker
-                  sudo systemctl enable docker
-                  sudo usermod -aG docker jenkins
-                else
-                  echo "Docker already installed"
-                fi
-                '''
+                checkout scm
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t $DOCKER_IMAGE .'
+                sh 'docker build -t node-app-image .'
             }
         }
 
         stage('Stop Old Container') {
             steps {
                 sh '''
-                docker stop $APP_NAME || true
-                docker rm $APP_NAME || true
+                docker stop node-app || true
+                docker rm node-app || true
                 '''
             }
         }
 
-        stage('Run New Container') {
+        stage('Deploy Container') {
             steps {
                 sh '''
                 docker run -d \
-                --name $APP_NAME \
+                --name node-app \
                 -p 80:3000 \
-                $DOCKER_IMAGE
+                node-app-image
                 '''
             }
-        }
-    }
-
-    post {
-        success {
-            echo "✅ Deployment successful"
-        }
-        failure {
-            echo "❌ Deployment failed"
         }
     }
 }
