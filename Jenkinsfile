@@ -22,10 +22,12 @@ pipeline {
         stage('Stop Old Container') {
             steps {
                 sh '''
-                docker stop node-app || true
-                docker rm node-app || true
+                if [ $(docker ps -q -f name=node-app) ]; then
+                docker stop node-app
+                docker rm node-app
+                fi
                 '''
-            }
+                }
         }
 
         stage('Deploy Container') {
@@ -33,7 +35,7 @@ pipeline {
                 sh '''
                 docker run -d \
                 --name node-app \
-                -p 80:3000 \
+                -p 82:3000 \
                 node-app-image
                 '''
             }
