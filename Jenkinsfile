@@ -1,5 +1,5 @@
 pipeline {
-    agent { label 'web-node' }
+    agent { label 'webserver1' }
 
     stages {
 
