@@ -1,5 +1,5 @@
 pipeline {
-    agent { label 'webserver1' }
+    agent { label 'webserver' }
 
     stages {
 
@@ -13,7 +13,6 @@ pipeline {
             steps {
                 sh '''
                 mkdir -p /home/ubuntu/app
-                rsync -av --delete ./ /home/ubuntu/app/
                 '''
             }
         }
