@@ -7,7 +7,7 @@ pipeline {
     APP_VERSION = "v${BUILD_NUMBER}"
     APP_ENV = "production"
     BUILD_TIME = sh(script: "date", returnStdout: true).trim()
-    IMAGE_NAME = "yourdockerhubusername/devops-dashboard"
+    IMAGE_NAME = "saqib1devops/devops-dashboard"
   }
 
   stages {
@@ -22,7 +22,9 @@ pipeline {
     stage("Docker Login") {
       steps {
         withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
-          sh "echo $PASS | docker login -u $USER --password-stdin"
+          sh ''' 
+          "echo $PASS | docker login -u $USER --password-stdin"
+          '''
         }
       }
     }
