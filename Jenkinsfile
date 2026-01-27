@@ -1,44 +1,48 @@
 pipeline {
-    agent { label 'webserver' }
+  agent any
 
-    triggers {
-        githubPush()
+  triggers {
+    githubPush()
+  }
+
+  environment {
+    APP_VERSION = "v${BUILD_NUMBER}"
+    APP_ENV = "production"
+    BUILD_TIME = sh(script: "date", returnStdout: true).trim()
+    IMAGE_NAME = "yourdockerhubusername/devops-dashboard"
+  }
+
+  stages {
+    stage("Checkout Source Code") {
+      steps {
+        checkout scm
+      }
     }
-    
-    stages {
 
-        stage('Checkout Source Code') {
-            steps {
-                checkout scm
-            }
-        }
-
-        stage('Build Docker Image') {
-            steps {
-                sh 'docker build -t node-app-image .'
-            }
-        }
-
-        stage('Stop Old Container') {
-            steps {
-                sh '''
-                if [ $(docker ps -q -f name=node-app) ]; then
-                docker stop node-app
-                docker rm node-app
-                fi
-                '''
-                }
-        }
-
-        stage('Deploy Container') {
-            steps {
-                sh '''
-                docker run -d \
-                --name node-app \
-                -p 82:3000 \
-                node-app-image
-                '''
-            }
-        }
+    stage("Build Docker Image") {
+      steps {
+        sh "docker build -t ${IMAGE_NAME}:${APP_VERSION} ."
+      }
     }
+
+    stage("Push Image") {
+      steps {
+        sh "docker push ${IMAGE_NAME}:${APP_VERSION}"
+      }
+    }
+
+    stage("Deploy Container") {
+      steps {
+        sh """
+        docker rm -f devops-app || true
+        docker run -d -p 82:3000 \
+          -e APP_VERSION=${APP_VERSION} \
+          -e APP_ENV=${APP_ENV} \
+          -e BUILD_TIME="${BUILD_TIME}" \
+          --name devops-app \
+          ${IMAGE_NAME}:${APP_VERSION}
+        """
+      }
+    }
+  }
 }
