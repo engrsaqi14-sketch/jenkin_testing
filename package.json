@@ -1,7 +1,7 @@
 {
   "name": "devops-dashboard",
   "version": "1.0.0",
-  "description": "CI/CD demo app with Docker & Jenkins",
+  "description": "Simple dashboard for DevOps CI/CD demo",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
