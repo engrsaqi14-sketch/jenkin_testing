@@ -1,9 +1,7 @@
 pipeline {
   agent any
 
-  triggers {
-    githubPush()
-  }
+  triggers { githubPush() }
 
   environment {
     APP_VERSION = "v${BUILD_NUMBER}"
@@ -13,25 +11,27 @@ pipeline {
   }
 
   stages {
-    stage("Checkout Source Code") {
+    stage("Checkout") {
+      steps { checkout scm }
+    }
+
+    stage("Build") {
+      steps { sh "docker build -t ${IMAGE_NAME}:${APP_VERSION} ." }
+    }
+
+    stage("Docker Login") {
       steps {
-        checkout scm
+        withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'saqib1devops', passwordVariable: 'engr.saqi14')]) {
+          sh "echo $PASS | docker login -u $USER --password-stdin"
+        }
       }
     }
 
-    stage("Build Docker Image") {
-      steps {
-        sh "docker build -t ${IMAGE_NAME}:${APP_VERSION} ."
-      }
+    stage("Push") {
+      steps { sh "docker push ${IMAGE_NAME}:${APP_VERSION}" }
     }
 
-    stage("Push Image") {
-      steps {
-        sh "docker push ${IMAGE_NAME}:${APP_VERSION}"
-      }
-    }
-
-    stage("Deploy Container") {
+    stage("Deploy") {
       steps {
         sh """
         docker rm -f devops-app || true
