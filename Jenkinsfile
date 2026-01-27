@@ -5,8 +5,6 @@ pipeline {
 
   environment {
     APP_VERSION = "v${BUILD_NUMBER}"
-    APP_ENV = "production"
-    BUILD_TIME = sh(script: "date", returnStdout: true).trim()
     IMAGE_NAME = "saqib1devops/devops-dashboard"
   }
 
@@ -22,9 +20,10 @@ pipeline {
     stage("Docker Login") {
       steps {
         withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
-          sh ''' 
-          "echo $PASS | docker login -u $USER --password-stdin"
-          '''
+          sh """
+            set -e
+            echo \$PASS | docker login -u \$USER --password-stdin
+          """
         }
       }
     }
@@ -36,13 +35,8 @@ pipeline {
     stage("Deploy") {
       steps {
         sh """
-        docker rm -f devops-app || true
-        docker run -d -p 82:3000 \
-          -e APP_VERSION=${APP_VERSION} \
-          -e APP_ENV=${APP_ENV} \
-          -e BUILD_TIME="${BUILD_TIME}" \
-          --name devops-app \
-          ${IMAGE_NAME}:${APP_VERSION}
+          docker rm -f devops-app || true
+          docker run -d -p 82:3000 --name devops-app ${IMAGE_NAME}:${APP_VERSION}
         """
       }
     }
