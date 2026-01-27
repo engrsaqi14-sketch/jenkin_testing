@@ -37,7 +37,7 @@ pipeline {
       steps {
         sh """
           docker rm -f devops-app || true
-          docker run -d -p 82:3000 --name devops-app ${IMAGE_NAME}:${APP_VERSION}
+          docker run -d -p 83:3000 --name devops-app ${IMAGE_NAME}:${APP_VERSION}
         """
       }
     }
