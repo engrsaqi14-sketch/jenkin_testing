@@ -10,7 +10,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 git branch: 'main',
-                    url: ''https://github.com/engrsaqi14-sketch/jenkin_testing.git''
+                    url: 'https://github.com/engrsaqi14-sketch/jenkin_testing.git'
             }
         }
 
