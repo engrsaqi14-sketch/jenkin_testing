@@ -1,45 +1,62 @@
 pipeline {
-  agent any
+    agent any
 
-  triggers { githubPush() }
-
-  environment {
-    APP_VERSION = "v${BUILD_NUMBER}"
-    IMAGE_NAME = "saqib1devops/devops-dashboard"
-  }
-
-  stages {
-    stage("Checkout") {
-      steps { checkout scm }
+    environment {
+        DOCKER_IMAGE = "saqib1devops/devops-app"
+        DOCKER_TAG   = "latest"
     }
 
-    stage("Build") {
-      steps { sh "docker build -t ${IMAGE_NAME}:${APP_VERSION} ." }
-    }
+    stages {
 
-    stage("Docker Login") {
-      steps {
-        withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
-          sh """
-            #!/bin/bash
-            set -e
-            echo \$PASS | docker login -u \$USER --password-stdin
-          """
+        stage('Checkout') {
+            steps {
+                git branch: 'main',
+                    url: 'https://github.com/your-org/devops-platform.git'
+            }
         }
-      }
+
+        stage('Build Docker Image') {
+            steps {
+                dir('app') {
+                    sh "docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} ."
+                }
+            }
+        }
+
+        stage('Push to Docker Hub') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-creds',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    sh '''
+                        echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                        docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy to EC2') {
+            steps {
+                sh '''
+                    ssh -o StrictHostKeyChecking=no ubuntu@15.185.45.142
+                        docker stop devops-app || true
+                        docker rm devops-app || true
+                        docker run -d --name devops-app -p 80:3000 ${DOCKER_IMAGE}:${DOCKER_TAG}
+                    '
+                '''
+            }
+        }
     }
 
-    stage("Push") {
-      steps { sh "docker push ${IMAGE_NAME}:${APP_VERSION}" }
+    post {
+        success {
+            echo "Application CI/CD pipeline completed successfully!"
+        }
+        failure {
+            echo "Pipeline failed. Check Jenkins logs."
+        }
     }
-
-    stage("Deploy") {
-      steps {
-        sh """
-          docker rm -f devops-app || true
-          docker run -d -p 81:3000 --name devops-app ${IMAGE_NAME}:${APP_VERSION}
-        """
-      }
-    }
-  }
 }
