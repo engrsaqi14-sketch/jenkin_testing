@@ -1,0 +1,8 @@
+env = "dev"
+ec2_ami = "ami-0a4c0e99209ca0fe9"
+ec2_family = "t3.micro"
+public_subnet = "subnet-08e5a56600bdf5be8"
+RemoteAccess_sg ="sg-081eda7ee1ace8449"
+WebAccess_sg ="sg-075434e2625890fda"
+myip_sg = "sg-06b2cb0e83fcfab02"
+key_name = "Bahrain"
