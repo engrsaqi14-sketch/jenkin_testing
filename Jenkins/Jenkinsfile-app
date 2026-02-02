@@ -42,7 +42,7 @@ pipeline {
         stage('Deploy to EC2') {
             steps {
                 sh '''
-                    ssh -o StrictHostKeyChecking=no ubuntu@15.185.45.142
+                    ssh -o StrictHostKeyChecking=no ubuntu@15.185.45.142 '
                         docker stop devops-app || true
                         docker rm devops-app || true
                         docker run -d --name devops-app -p 80:3000 ${DOCKER_IMAGE}:${DOCKER_TAG}
