@@ -20,7 +20,7 @@ pipeline {
                 git(
                     url: 'https://github.com/engrsaqi14-sketch/jenkin_testing.git',
                     branch: 'main',
-                    credentialsId: 'github-creds'    // GitHub credentials (Jenkins credential ID)
+                    credentialsId: '3bbda6a1-6983-466c-8122-922eec7b6029'    // GitHub credentials (Jenkins credential ID)
                 )
             }
         }
