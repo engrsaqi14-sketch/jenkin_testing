@@ -2,22 +2,32 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = "saqib1devops/devops-app"
-        DOCKER_TAG   = "latest"
+        // Docker Hub credentials
+        DOCKER_HUB_USER = 'saqib1devops'           // Tumhara Docker Hub username
+        DOCKER_HUB_REPO = 'devops-app'             // Repository name
+        DOCKER_IMAGE = "${DOCKER_HUB_USER}/${DOCKER_HUB_REPO}"
+        DOCKER_TAG  = "latest"
+
+        // EC2 info
+        EC2_IP = '157.175.148.1'                   // Tumhare Webserver EC2 ka public IP
+        EC2_USER = 'ubuntu'                        // EC2 username (default ubuntu for Ubuntu AMI)
     }
 
     stages {
 
-        stage('Checkout') {
+        stage('Checkout SCM') {
             steps {
-                git branch: 'main',
-                    url: 'https://github.com/engrsaqi14-sketch/jenkin_testing.git'
+                git(
+                    url: 'https://github.com/engrsaqi14-sketch/jenkin_testing.git',
+                    branch: 'main',
+                    credentialsId: 'github-creds'    // GitHub credentials (Jenkins credential ID)
+                )
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                dir('APP') {
+                dir('APP') {  // Agar Dockerfile APP folder mein hai
                     sh "docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} ."
                 }
             }
@@ -26,12 +36,12 @@ pipeline {
         stage('Push to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(
-                    credentialsId: 'dockerhub-creds',
+                    credentialsId: 'dockerhub-creds', // Jenkins mein DockerHub credentials ID
                     usernameVariable: 'DOCKER_USER',
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
                     sh """
-                        echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin
+                        echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
                         docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
                     """
                 }
@@ -40,23 +50,32 @@ pipeline {
 
         stage('Deploy to EC2') {
             steps {
-                sh '''
-                    ssh -o StrictHostKeyChecking=no ubuntu@157.175.148.1 '
-                        docker stop devops-app || true
-                        docker rm devops-app || true
-                        docker run -d --name devops-app -p 80:3000 ${DOCKER_IMAGE}:${DOCKER_TAG}
-                    '
-                '''
+                withCredentials([sshUserPrivateKey(
+                    credentialsId: 'ubuntu', // Jenkins private key ID
+                    keyFileVariable: 'KEYFILE',
+                    usernameVariable: 'USER'
+                )]) {
+                    sh """
+                        ssh -i $KEYFILE -o StrictHostKeyChecking=no $USER@${EC2_IP} '
+                            docker stop devops-app || true
+                            docker rm devops-app || true
+                            docker run -d --name devops-app -p 80:3000 ${DOCKER_IMAGE}:${DOCKER_TAG}
+                        '
+                    """
+                }
             }
         }
     }
 
     post {
+        always {
+            echo "Pipeline finished."
+        }
         success {
-            echo "Application CI/CD pipeline completed successfully!"
+            echo "Deployment successful!"
         }
         failure {
-            echo "Pipeline failed. Check Jenkins logs."
+            echo "Pipeline failed. Check logs for errors."
         }
     }
 }
