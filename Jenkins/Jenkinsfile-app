@@ -51,7 +51,7 @@ pipeline {
         stage('Deploy to EC2') {
             steps {
                 withCredentials([sshUserPrivateKey(
-                    credentialsId: 'ubuntu', // Jenkins private key ID
+                    credentialsId: 'jenkins_testing', // Jenkins private key ID
                     keyFileVariable: 'KEYFILE',
                     usernameVariable: 'USER'
                 )]) {
