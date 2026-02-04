@@ -12,6 +12,15 @@ resource "aws_instance" "firstec2" {
 
   associate_public_ip_address = true
 
+  user_data = <<EOF
+#!/bin/bash
+sudo apt update -y
+sudo apt install -y docker.io
+sudo systemctl enable docker
+sudo systemctl start docker
+docker run -d -p 81:3000 saqib1devops/devops-app:latest
+EOF
+
   tags = {
     Name = "${var.env}-webserver"
   }
