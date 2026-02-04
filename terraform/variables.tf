@@ -31,3 +31,6 @@ variable "RemoteAccess_sg" {
 variable "myip_sg" {
   type = string
 }
+variable "key_name" {
+  type = string
+}
